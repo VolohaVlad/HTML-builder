@@ -14,13 +14,13 @@ const indexPath = path.join(destinationPath, 'index.html');
 const createCssBundle = async () => {
   try {
     await promises.rm(styleDestinationPath, { recursive: true, force: true });
-    const buffer = await promises.readdir(sourceStylesPath);
+    const buffer = await promises.readdir(sourceStylesPath, { withFileTypes: true });
     const cssFiles = buffer.filter(
-      (file) => path.extname(path.join(sourceStylesPath, file)) === '.css'
+      (file) => file.isFile() && path.extname(path.join(sourceStylesPath, file.name)) === '.css'
     );
     const files = await Promise.all(
       cssFiles.map((file) =>
-        promises.readFile(path.join(sourceStylesPath, file), 'utf-8')
+        promises.readFile(path.join(sourceStylesPath, file.name), 'utf-8')
       )
     );
     const output = fs.createWriteStream(styleDestinationPath, { flags: 'w' });
