@@ -6,16 +6,25 @@ const { stdout } = process;
 const sourcePath = path.join(__dirname, 'files');
 const destinationPath = path.join(__dirname, 'files-copy');
 
-promises
-  .rm(destinationPath, { recursive: true, force: true })
-  .then(() => promises.mkdir(destinationPath, { recursive: true }))
-  .then(() => promises.readdir(sourcePath))
-  .then((files) => {
-    files.forEach((file) => {
-      promises.copyFile(`${sourcePath}/${file}`, `${destinationPath}/${file}`);
-      stdout.write(`${destinationPath}${file}\n`);
+const copyDirectory = async function (sourcePath, destinationPath) {
+  try {
+    await promises.rm(destinationPath, { recursive: true, force: true });
+    await promises.mkdir(destinationPath, { recursive: true });
+    const files = await promises.readdir(sourcePath, { withFileTypes: true });
+    files.forEach(async (file) => {
+      if(file.isFile()) {
+        promises.copyFile(`${sourcePath}/${file.name}`, `${destinationPath}/${file.name}`);
+        stdout.write(`${destinationPath}${file.name}\n`);
+      }
+      if (file.isDirectory()) {
+        const dirSourcePath = path.join(sourcePath, file.name);
+        const dirDestinationPath = path.join(destinationPath, file.name);
+        await copyDirectory(dirSourcePath, dirDestinationPath);
+      }
     });
-  })
-  .catch(function (error) {
+  } catch (error) {
     stdout.write(error);
-  });
+  }
+}
+
+Promise.all([copyDirectory(sourcePath, destinationPath)]);
