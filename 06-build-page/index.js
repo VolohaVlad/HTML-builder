@@ -38,7 +38,6 @@ const copyAssets = async function (sourcePath, destinationPath) {
     files.forEach(async (file) => {
       if(file.isFile()) {
         promises.copyFile(`${sourcePath}/${file.name}`, `${destinationPath}/${file.name}`);
-        stdout.write(`${destinationPath}${file.name}\n`);
       }
       if (file.isDirectory()) {
         const dirSourcePath = path.join(sourcePath, file.name);
@@ -62,7 +61,7 @@ const htmlBuilder = async () => {
     const componentTemplate = componentFileNames.map((file) => `{{${path.basename(file, '.html')}}}`);
     let template = await promises.readFile(path.join(__dirname, 'template.html'), 'utf-8');
     componentTemplate.forEach((file, index) => {
-      template = template.replace(file, filesData[index]);
+      template = template.replaceAll(file, filesData[index]);
     });
     fs.createWriteStream(indexPath).write(template);
   } catch (error) {
